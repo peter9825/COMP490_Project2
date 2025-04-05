@@ -1,3 +1,9 @@
+"""
+This module is responsible for implementing
+communication with chess engines
+It defines a set of classes and commands for sending 
+positions, receiving analysis, and issuing play commands
+"""
 from __future__ import annotations
 
 import abc

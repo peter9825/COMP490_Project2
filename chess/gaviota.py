@@ -1,3 +1,9 @@
+"""
+This module provides access to Gaviota tablebases, 
+which are endgame databases containing perfect play 
+for endgame positions with few pieces.
+"""
+
 from __future__ import annotations
 
 import ctypes

@@ -1,3 +1,8 @@
+"""
+This file deals with opening book support using the Polyglot format.
+You can then retrieve a list of moves (with associated weights) from 
+the opening book to help guide early-game play.
+"""
 from __future__ import annotations
 
 import chess

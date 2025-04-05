@@ -1,4 +1,6 @@
 """
+This is the main module that ties all parts of the library together. 
+It defines the public API and core types and constants.
 A chess library with move generation and validation,
 Polyglot opening book probing, PGN reading and writing,
 Gaviota tablebase probing,

@@ -1,3 +1,10 @@
+"""
+This module handles the Portable Game Notation (PGN) aspect of the library.
+It parses PGN files (or streams) so you can load complete games, including 
+headers and comments.
+It also supports exporting a game to PGN format, including formatting moves, 
+annotations (NAGs), and comments.
+"""
 from __future__ import annotations
 
 import abc
