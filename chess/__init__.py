@@ -739,6 +739,11 @@ class BaseBoard:
     otherwise specified in the optional *board_fen* argument. If *board_fen*
     is ``None``, an empty board is created.
     """
+    # function to count all pieces on the board after a given move. 
+    def count_pieces(self) -> int:
+     """Returns the total number of pieces on the board."""
+     return popcount(self.occupied)
+
 
     def __init__(self, board_fen: Optional[str] = STARTING_BOARD_FEN) -> None:
         self.occupied_co = [BB_EMPTY, BB_EMPTY]
