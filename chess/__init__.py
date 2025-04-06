@@ -741,12 +741,6 @@ class BaseBoard:
     otherwise specified in the optional *board_fen* argument. If *board_fen*
     is ``None``, an empty board is created.
     """
-    # function to count all pieces on the board after a given move. 
-    def count_pieces(self) -> int:
-     """Returns the total number of pieces on the board."""
-     return popcount(self.occupied)
-
-
     def __init__(self, board_fen: Optional[str] = STARTING_BOARD_FEN) -> None:
         self.occupied_co = [BB_EMPTY, BB_EMPTY]
 
@@ -756,6 +750,40 @@ class BaseBoard:
             self._reset_board()
         else:
             self._set_board_fen(board_fen)
+
+    def count_pieces(
+            self,
+            color: Optional[Color] = None,
+            piece_type: Optional[PieceType] = None
+    ) -> int:
+        """
+        Counts pieces on the boards.
+
+        :param color: Optional param that only counts pieces of this color.
+        :param piece_type: Optional param that only counts pieces of this type (PAWN, KNIGHT, etc.)
+        """
+        if color is not None and piece_type is not None:
+            return popcount(self.pieces_mask(piece_type, color))
+        elif color is not None:
+            return popcount(self.occupied_co[color])
+        elif piece_type is not None:
+            match piece_type:
+                case 1:  # PAWN
+                    return popcount(self.pawns)
+                case 2:  # KNIGHT
+                    return popcount(self.knights)
+                case 3:  # BISHOP
+                    return popcount(self.bishops)
+                case 4:  # ROOK
+                    return popcount(self.rooks)
+                case 5:  # QUEEN
+                    return popcount(self.queens)
+                case 6:  # KING
+                    return popcount(self.kings)
+                case _:
+                    raise ValueError(f"Invalid piece type: {piece_type}")
+        else:
+            return popcount(self.occupied)
 
     def _reset_board(self) -> None:
         self.pawns = BB_RANK_2 | BB_RANK_7

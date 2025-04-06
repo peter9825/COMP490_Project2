@@ -22,3 +22,4 @@ data/syzygy/giveaway/*.[gs]tb[wz]
 fuzz/corpus
 
 release-v*.txt
+/A_TEST_FOLDER
