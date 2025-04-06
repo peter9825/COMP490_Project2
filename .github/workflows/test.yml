@@ -17,7 +17,7 @@ jobs:
       - run: .github/workflows/setup-${{ matrix.os }}.sh
         shell: bash
       - run: pip install -e .
-      - run: python test.py -v
+      - run: python tests/test.py -v
   perft:
     runs-on: ubuntu-latest
     steps:
