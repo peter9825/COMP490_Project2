@@ -1,5 +1,6 @@
 import unittest
 import chess
+from chess import (BLACK, WHITE, PAWN, KNIGHT, QUEEN) 
 
 class TestCountPieces(unittest.TestCase):
 
@@ -44,6 +45,35 @@ class TestCountPieces(unittest.TestCase):
         count = board.count_pieces()
         self.assertEqual(count, 0, "An empty board should have 0 pieces.")
         print("test_empty_board passed: count =", count)
+
+    # if user selects a color and a piece it should return the number of that piece and what color they are
+    def test_piece_color_board(self):
+        board = chess.Board()
+        count = board.count_pieces(color = WHITE, piece_type = PAWN)
+        self.assertEqual(count, 8, "A full board should have 8 white pawns.")
+        print("The total number of white pawns is =", count)
+
+    # tests the number of queens on a full board
+    def test_piece_board(self):
+        board = chess.Board()
+        count = board.count_pieces(piece_type = QUEEN)
+        self.assertEqual(count, 2, "A full board should have 2 queens.")
+        print("The total number of queens on a full board is =", count)
+
+    # tests the number of black pieces on a full board
+    def test_color_board(self):
+        board = chess.Board()
+        count = board.count_pieces(color = BLACK)
+        self.assertEqual(count, 16, "A full board has 16 black pieces.")
+        print("The total number of black pieces on a full board is =", count)
+
+    # test the number of pieces within a specific board instance
+    def test_board_sequence(self):
+        board = chess.Board("8/8/8/8/8/8/4PP2/8 w - - 0 1") # board sequence containing only 2 white pawns
+        count = board.count_pieces(piece_type = PAWN, color = WHITE)
+        self.assertEqual(count, 2, "there are 2 white pawns within this board squence.")
+        count = board.count_pieces(piece_type = PAWN, color = BLACK)
+        self.assertEqual(count, 0, "there are 0 black pawns within this board squence.")
 
 if __name__ == '__main__':
     unittest.main()
