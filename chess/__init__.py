@@ -1396,15 +1396,15 @@ class BaseBoard:
 
     def __str__(self, gridlines: Optional[bool] = False) -> str:
         builder: List[str] = []
-        row_headers = "  | a b c d e f g h\n- + ---------------\n"
-        column_headers = ["8", "7", "6", "5", "4", "3", "2", "1"]
+        column_headers = "  | a b c d e f g h\n- + ---------------\n"
+        row_headers = ["8", "7", "6", "5", "4", "3", "2", "1"]
 
         if gridlines:
-            builder.append(row_headers)
+            builder.append(column_headers)
 
         for index, square in enumerate(SQUARES_180):
             if gridlines and square % 8 == 0:
-                builder.append(f"{column_headers[square // 8]} | ")
+                builder.append(f"{row_headers[square // 8]} | ")
 
             piece = self.piece_at(square)
             if piece:
