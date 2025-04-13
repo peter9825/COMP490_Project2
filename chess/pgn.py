@@ -1297,7 +1297,7 @@ class GameBuilder(BaseVisitor[GameT]):
         """
         LOGGER.error("%s while parsing %r", error, self.game)
         self.game.errors.append(error)
-                
+
     @override
     def result(self) -> GameT:
         """
