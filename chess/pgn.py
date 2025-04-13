@@ -1297,7 +1297,7 @@ class GameBuilder(BaseVisitor[GameT]):
         """
         LOGGER.error("%s while parsing %r", error, self.game)
         self.game.errors.append(error)
-
+                
     @override
     def result(self) -> GameT:
         """
@@ -1305,6 +1305,17 @@ class GameBuilder(BaseVisitor[GameT]):
         """
         return self.game
 
+# Add the following new class to provide strict error handling:
+class StrictGameBuilder(GameBuilder):
+    """
+    A game builder that raises errors immediately instead of logging them
+    and appending them to the game. Use this class if you would prefer any
+    parsing error to be raised as an exception.
+    """
+    @override
+    def handle_error(self, error: Exception) -> None:
+        # Instead of logging and appending, immediately raise the error.
+        raise error
 
 class HeadersBuilder(BaseVisitor[HeadersT]):
     """Collects headers into a dictionary."""
