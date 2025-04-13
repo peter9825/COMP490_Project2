@@ -69,13 +69,13 @@ def main():
     except Exception as ex:
         print("Default GameBuilder raised an exception unexpectedly:", ex)
 
-    # print("\nParsing with StrictGameBuilder (errors should raise exceptions):")
-    # try:
-    parse_with_strict()
-    # except Exception as ex:
-    #     # This is the expected behavior.
-    #     print("StrictGameBuilder correctly raised an exception:")
-    #     print(" -", ex)
+    print("\nParsing with StrictGameBuilder (errors should raise exceptions):")
+    try:
+        parse_with_strict()
+    except Exception as ex:
+        # This is the expected behavior.
+        print("StrictGameBuilder correctly raised an exception:")
+        print(" -", ex)
 
 
 if __name__ == '__main__':

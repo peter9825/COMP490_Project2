@@ -1394,12 +1394,19 @@ class BaseBoard:
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.board_fen()!r})"
 
-    def __str__(self) -> str:
+    def __str__(self, gridlines: Optional[bool] = False) -> str:
         builder: List[str] = []
+        row_headers = "  | a b c d e f g h\n- + ---------------\n"
+        column_headers = ["8", "7", "6", "5", "4", "3", "2", "1"]
 
-        for square in SQUARES_180:
+        if gridlines:
+            builder.append(row_headers)
+
+        for index, square in enumerate(SQUARES_180):
+            if gridlines and square % 8 == 0:
+                builder.append(f"{column_headers[square // 8]} | ")
+
             piece = self.piece_at(square)
-
             if piece:
                 builder.append(piece.symbol())
             else:
