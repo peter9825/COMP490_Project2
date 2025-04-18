@@ -1825,7 +1825,6 @@ def read_game(handle: TextIO, *, Visitor: Any = GameBuilder) -> Any:
     visitor.end_game()
     return visitor.result()
 
-
 def read_headers(handle: TextIO) -> Optional[Headers]:
     """
     Reads game headers from a PGN file opened in text mode. Skips the rest of
