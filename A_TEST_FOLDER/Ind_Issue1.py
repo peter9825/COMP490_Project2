@@ -1,18 +1,9 @@
 import io
 import chess.pgn
+from chess.pgn import (read_all_headers)
 
-def read_all_headers(pgn_file):
-    """
-    Read all headers from a PGN file, skipping empty header objects.
-    """
-    headers_list = []
-    while True:
-        headers = chess.pgn.read_headers(pgn_file)
-        if headers is None:
-            break
-        if len(headers) > 0:
-            headers_list.append(headers)
-    return headers_list
+
+
 
 test_pgn = """
 [Event "World Cup"]

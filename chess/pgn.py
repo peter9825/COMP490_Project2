@@ -1825,6 +1825,21 @@ def read_game(handle: TextIO, *, Visitor: Any = GameBuilder) -> Any:
     visitor.end_game()
     return visitor.result()
 
+def read_all_headers(pgn_file):
+    """
+    Read all headers from a PGN file, skipping empty header objects.
+    """
+    headers_list = []
+    while True:
+        headers = chess.pgn.read_headers(pgn_file)
+        if headers is None:
+            break
+        if len(headers) > 0:
+            headers_list.append(headers)
+    return headers_list
+
+
+
 def read_headers(handle: TextIO) -> Optional[Headers]:
     """
     Reads game headers from a PGN file opened in text mode. Skips the rest of
