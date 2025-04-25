@@ -3,8 +3,6 @@ import chess.pgn
 from chess.pgn import (read_all_headers)
 
 
-
-
 test_pgn = """
 [Event "World Cup"]
 [Site "Khanty-Mansiysk RUS"]

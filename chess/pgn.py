@@ -14,6 +14,7 @@ import itertools
 import logging
 import re
 import typing
+import io
 
 import chess
 import chess.engine
@@ -1010,6 +1011,79 @@ class Game(GameNode):
             self.headers.get("Site", "?"),
             f", {len(self.errors)} errors" if self.errors else "")
 
+class SubGame(Game):
+    """
+    A subclass of Game that represents a segment of a larger PGN game.
+    This class provides a way to work with a subset of moves from a full game.
+    """
+
+    def __init__(self, parent_game=None, start_pli=None, end_pli=None):
+        """
+        Initialize a SubGame object.
+
+        Args:
+            parent_game: The original Game object this SubGame is derived from.
+            start_pli: The starting ply from the pgn file.
+            end_pli: The end ply from the pgn file.
+        """
+        super().__init__()
+
+        self.parent_game = parent_game
+        self.start_pli = start_pli
+        self.end_pli = end_pli
+
+        if parent_game and start_pli is not None and end_pli is not None:
+            self._extract_from_parent()
+
+    def _extract_from_parent(self):
+        """
+        Extract segment from the parent game and initialize this SubGame with it.
+        """
+        if self.parent_game is None:
+            raise ValueError("Parent game is not set")
+
+        self.headers = self.parent_game.headers.copy()
+
+        all_moves = list(self.parent_game.mainline_moves())
+        total = len(all_moves)
+
+        if not (1 <= self.start_pli <= self.end_pli <= total):
+            raise ValueError(
+                f"Subgame plies must be between 1 and {total}; "
+                f" got {self.start_pli}..{self.end_pli}"
+            )
+
+        slice_moves = all_moves[self.start_pli -1 : self.end_pli]
+
+        starting_board = self.parent_game.board()
+        for i in range(self.start_pli - 1):
+            starting_board.push(all_moves[i])
+
+        self.setup(starting_board)
+
+        node = self
+        for move in slice_moves:
+            node = node.add_variation(move)
+
+
+    @classmethod
+    def from_pgn_segment(cls, game, start_pli, end_pli):
+        """
+        Create SubGame from a segment of an existing game.
+        """
+        subgame = cls(game, start_pli, end_pli)
+        return subgame
+
+    @classmethod
+    def from_pgn_string(cls, pgn_string, start_pli, end_pli):
+        """
+        Create Subgame directly from a PGN string and ply range.
+        """
+        pgn_io = io.StringIO(pgn_string)
+        full_game = read_game(pgn_io)
+
+        return cls.from_pgn_segment(full_game, start_pli, end_pli)
+    
 
 HeadersT = TypeVar("HeadersT", bound="Headers")
 
