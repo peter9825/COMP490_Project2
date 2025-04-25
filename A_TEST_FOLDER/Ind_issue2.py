@@ -4,8 +4,17 @@ import io
 from chess.pgn import SubGame
 
 pgn_string = """
-1. e4 e5 2. Nf3 (2. Nc3 d6) 2... d5 3. a5a4  4. b4 b5
+[Event "Example Game"]
+[Site "Chess Demo"]
+[Date "2025.04.25"]
+[Round "1"]
+[White "Player A"]
+[Black "Player B"]
+[Result "1-0"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. O-O Nf6 5. d3 O-O 6. Bg5 h6 7. Bh4 d6 8. h3 Be6
 """
+
 
 print("DEMO: SubGame Class for Chess PGN Segments")
 print("-----------------------------------------\n")
