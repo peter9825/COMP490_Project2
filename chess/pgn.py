@@ -960,6 +960,42 @@ class Game(GameNode):
         """Creates an empty game without the default Seven Tag Roster."""
         return cls(headers={})
 
+    def extract_subgame(
+        self,
+        start_pli: int,
+        end_pli:   int
+    ) -> GameT:
+        """
+        Return a new Game representing only the half-moves (plies)
+        from `start_pli` through `end_pli` of *this* game's mainline.
+
+        start_pli=1 is White's first move, 2 is Black's first move, etc.
+        Raises ValueError if the range is out of bounds.
+        """
+        # Gather the full mainline as a list of Moves
+        all_moves = list(self.mainline_moves())
+        total     = len(all_moves)
+
+        if not (1 <= start_pli <= end_pli <= total):
+            raise ValueError(
+                f"Subgame plies must be between 1 and {total}; "
+                f"got {start_pli}..{end_pli}"
+            )
+
+        # Slice out the desired window
+        slice_moves = all_moves[start_pli - 1 : end_pli]
+
+        # Build a fresh Game of the same subclass
+        subgame = type(self)()
+        # (Optional) copy headers so metadata travels with the subgame:
+        subgame.headers = self.headers.copy()
+
+        # Replay only those moves
+        node: GameNode = subgame
+        for mv in slice_moves:
+            node = node.add_variation(mv)
+
+        return subgame
     @classmethod
     def builder(cls: Type[GameT]) -> GameBuilder[GameT]:
         return GameBuilder(Game=cls)

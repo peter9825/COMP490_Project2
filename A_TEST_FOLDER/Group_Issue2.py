@@ -16,8 +16,8 @@ from chess.pgn import StrictGameBuilder
 
 # Configure logging so that engine/PGN parsing logs are visible during testing.
 logging.basicConfig(level=logging.DEBUG)
-# Define a deliberately malformed PGN string.
-# For instance, the move "e9e5" is invalid because there is no square "e9".
+# Define malformed PGN string.
+# move "e9e5" is invalid because there is no square "e9".
 malformed_pgn = """\
 [Event "Test Event"]
 [Site "Nowhere"]
@@ -58,7 +58,7 @@ def parse_with_strict():
 
     pgn_file = io.StringIO(malformed_pgn)
     # This call should raise an exception because of the malformed move.
-    game = chess.pgn.read_game(pgn_file, Visitor=StrictGameBuilder)
+    chess.pgn.read_game(pgn_file, Visitor=StrictGameBuilder)
     # If no exception is raised, print an error (this is not expected).
     print("StrictGameBuilder did not raise an error as expected.")
 
