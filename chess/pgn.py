@@ -961,42 +961,6 @@ class Game(GameNode):
         """Creates an empty game without the default Seven Tag Roster."""
         return cls(headers={})
 
-    def extract_subgame(
-        self,
-        start_pli: int,
-        end_pli:   int
-    ) -> GameT:
-        """
-        Return a new Game representing only the half-moves (plies)
-        from `start_pli` through `end_pli` of *this* game's mainline.
-
-        start_pli=1 is White's first move, 2 is Black's first move, etc.
-        Raises ValueError if the range is out of bounds.
-        """
-        # Gather the full mainline as a list of Moves
-        all_moves = list(self.mainline_moves())
-        total     = len(all_moves)
-
-        if not (1 <= start_pli <= end_pli <= total):
-            raise ValueError(
-                f"Subgame plies must be between 1 and {total}; "
-                f"got {start_pli}..{end_pli}"
-            )
-
-        # Slice out the desired window
-        slice_moves = all_moves[start_pli - 1 : end_pli]
-
-        # Build a fresh Game of the same subclass
-        subgame = type(self)()
-        # (Optional) copy headers so metadata travels with the subgame:
-        subgame.headers = self.headers.copy()
-
-        # Replay only those moves
-        node: GameNode = subgame
-        for mv in slice_moves:
-            node = node.add_variation(mv)
-
-        return subgame
     @classmethod
     def builder(cls: Type[GameT]) -> GameBuilder[GameT]:
         return GameBuilder(Game=cls)
@@ -1010,6 +974,102 @@ class Game(GameNode):
             self.headers.get("Date", "????.??.??"),
             self.headers.get("Site", "?"),
             f", {len(self.errors)} errors" if self.errors else "")
+
+    def extract_positions(self, repertoire_color='white'):
+        """
+        Extracts positions with moves from the game based on the repertoire color.
+        Returns a list of tuples containing (FEN, move_text).
+        
+        Args:
+            repertoire_color: 'white' or 'black' - which side's repertoire we're building
+            
+        Returns:
+            List of (FEN, move_text) tuples
+        """
+        # No need to import chess here, as it's already imported at the top of pgn.py
+        
+        # Determine the perspective - use the constants directly from the chess module
+        if repertoire_color.lower() == 'black':
+            perspective_color = chess.WHITE  # FEN positions before white's move
+        elif repertoire_color.lower() == 'white':
+            perspective_color = chess.BLACK  # FEN positions before black's move
+        else:
+            raise ValueError(f"({repertoire_color}) is an invalid input for repertoire_color.")
+        
+        # Track processed positions to avoid duplicates
+        processed = set()
+        positions = []
+        
+        def format_comments(node):
+            """Format all comments from a node"""
+            result = ""
+            for comment in node.comments:
+                result += f" {{ {comment} }}"
+            return result
+        
+        def process_game_tree(node=None, path=None):
+            """Recursively process the game tree"""
+            if node is None:
+                node = self
+            if path is None:
+                path = []
+            
+            if node.parent:
+                parent_board = node.parent.board()
+                
+                # We care about positions where it's the opponent's turn to move
+                if parent_board.turn == perspective_color:
+                    fen = parent_board.fen()
+                    position_key = fen
+                    
+                    # Only process each unique position once for main line
+                    if node.is_main_variation() and position_key in processed:
+                        return
+                    
+                    if node.is_main_variation():
+                        processed.add(position_key)
+                    
+                    # Format move number and move
+                    move_number = parent_board.fullmove_number
+                    move = parent_board.san(node.move)
+                    
+                    # Format the move text depending on the side to move
+                    if parent_board.turn == chess.WHITE:
+                        move_text = f"{move_number}. {move}"
+                    else:
+                        move_text = f"{move_number}... {move}"
+                    
+                    # Add comments for the move
+                    move_text += format_comments(node)
+                    
+                    # Add response if available
+                    if node.variations:
+                        response = node.variations[0]
+                        response_board = node.board()
+                        
+                        if hasattr(response, 'move') and response.move:
+                            response_move = response_board.san(response.move)
+                            
+                            # Format based on side to move
+                            if response_board.turn == chess.WHITE:
+                                move_text += f" {response_board.fullmove_number}. {response_move}"
+                            else:
+                                # For black's move, use the "N..." notation
+                                move_text += f" {response_board.fullmove_number}... {response_move}"
+                            
+                            # Add comments for the response
+                            move_text += format_comments(response)
+                    
+                    # Add position and moves to result
+                    positions.append((fen, move_text))
+            
+            # Continue down each variation
+            for variation in node.variations:
+                process_game_tree(variation, path + [variation.move])
+        
+        # Start processing
+        process_game_tree()
+        return positions
 
 class SubGame(Game):
     """
