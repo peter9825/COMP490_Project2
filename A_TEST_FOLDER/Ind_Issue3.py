@@ -10,11 +10,13 @@ def extract_positions_with_moves(pgn_input = str, repertoire_color = str):
         perspective_color = chess.BLACK  # FEN positions before black's move
     else:
         return ValueError(f"({repertoire_color}) is an invalid input for the repertoir_color.")
-    
+   
     # Read the PGN
     pgn = io.StringIO(pgn_input)
-        
     game = chess.pgn.read_game(pgn)
+    
+    # Track processed positions to avoid duplicates
+    processed = set()
     
     def format_comments(node):
         """Format all comments from a node"""
@@ -23,75 +25,70 @@ def extract_positions_with_moves(pgn_input = str, repertoire_color = str):
             result += f" {{ {comment} }}"
         return result
     
-    # Track already processed positions to avoid duplicates
-    processed_positions = set()
-    
-    def process_position(node, path=None):
+    def process_game_tree(node=None, path=None):
+        """Recursively process the game tree"""
+        if node is None:
+            node = game
         if path is None:
             path = []
         
-        # Skip the root node
-        if node.parent is None:
-            for variation in node.variations:
-                process_position(variation)
-            return
-        
-        # Get the board position before this move
-        parent_board = node.parent.board()
-        
-        # Check if this position is from the chosen perspective
-        if parent_board.turn == perspective_color:
-            fen = parent_board.fen()
+        if node.parent:
+            parent_board = node.parent.board()
             
-            # Skip if already processed this position with this move
-            position_key = (fen, str(node.move))
-            if position_key in processed_positions:
-                return
-            processed_positions.add(position_key)
-            
-            # Get move number and opponent's move
-            move_number = parent_board.fullmove_number
-            opponent_move = parent_board.san(node.move)
-            
-            # Format the move text
-            if parent_board.turn == chess.WHITE:
-                move_text = f"{move_number}. {opponent_move}"
-            else:
-                move_text = f"{move_number}... {opponent_move}"
-            
-            # Add comments for opponent's move
-            move_text += format_comments(node)
-            
-            # Check if there's a response move
-            if node.variations:
-                response_node = node.variations[0]
-                if hasattr(response_node, 'move') and response_node.move:
-                    # Get the board after opponent's move
+            # We care about positions where it's the opponent's turn to move
+            if parent_board.turn == perspective_color:
+                fen = parent_board.fen()
+                position_key = fen
+                
+                # Only process each unique position once for main line
+                if node.is_main_variation() and position_key in processed:
+                    return
+                
+                if node.is_main_variation():
+                    processed.add(position_key)
+                
+                # Format move number and move
+                move_number = parent_board.fullmove_number
+                move = parent_board.san(node.move)
+                
+                # Format the move text depending on the side to move
+                if parent_board.turn == chess.WHITE:
+                    move_text = f"{move_number}. {move}"
+                else:
+                    move_text = f"{move_number}... {move}"
+                
+                # Add comments for the move
+                move_text += format_comments(node)
+                
+                # Add response if available
+                if node.variations:
+                    response = node.variations[0]
                     response_board = node.board()
-                    response_move = response_board.san(response_node.move)
                     
-                    # Add move number only for white's move
-                    if response_board.turn == chess.WHITE:
-                        move_text += f" {response_board.fullmove_number}."
-                    
-                    move_text += f" {response_move}"
-                    
-                    # Add comments for response
-                    move_text += format_comments(response_node)
-            
-            # Output the position and moves
-            print(f'[FEN "{fen}"]')
-            print(move_text)
-            print()
+                    if hasattr(response, 'move') and response.move:
+                        response_move = response_board.san(response.move)
+                        
+                        # Format based on side to move
+                        if response_board.turn == chess.WHITE:
+                            move_text += f" {response_board.fullmove_number}. {response_move}"
+                        else:
+                            # For black's move, use the "N..." notation
+                            move_text += f" {response_board.fullmove_number}... {response_move}"
+                        
+                        # Add comments for the response
+                        move_text += format_comments(response)
+                
+                # Output position and moves
+                print(f'[FEN "{fen}"]')
+                print(move_text)
+                print()
         
-        # Process all variations
+        # Continue down each variation
         for variation in node.variations:
-            new_path = path + [variation.move]
-            process_position(variation, new_path)
+            process_game_tree(variation, path + [variation.move])
     
     # Start processing
-    process_position(game)
-
+    process_game_tree()
 
 # Test PGN string
 test_pgn_str = '''
