@@ -1,82 +1,54 @@
 """
-Proof-of-Concept for testing StrictGameBuilder.
+Proof-of-Concept for lenient vs strict PGN parsing.
 
-This script creates an intentionally malformed PGN game and then parses it
-using both the default GameBuilder (which suppresses errors) and the strict
-version (StrictGameBuilder) that raises errors immediately.
-
-Run this file with:
+Run with:
     python main.py
 """
-
 import io
-import chess.pgn
 import logging
+import chess.pgn
 from chess.pgn import StrictGameBuilder
 
-# Configure logging so that engine/PGN parsing logs are visible during testing.
+# Make all parser logs visible
 logging.basicConfig(level=logging.DEBUG)
-# Define malformed PGN string.
-# move "e9e5" is invalid because there is no square "e9".
+
 malformed_pgn = """\
-[Event "Test Event"]
-[Site "Nowhere"]
-[Date "2020.01.01"]
+[Event "Test"]
+[Site "Here"]
+[Date "2025.01.01"]
 [Round "1"]
-[White "Player1"]
-[Black "Player2"]
+[White "W"]
+[Black "B"]
 [Result "*"]
 
-1. e9e5 *
+1. e9e5 e4 *
 """
 
-def parse_with_default():
-    """
-    Parse the malformed PGN using the default GameBuilder.
-    This parser logs errors and adds them to the game.errors list
-    rather than raising them.
-    """
-    # Create an in‑memory file with the malformed PGN.
-    pgn_file = io.StringIO(malformed_pgn)
-    game = chess.pgn.read_game(pgn_file)
-    # Print the outcome: it should complete without raising an exception,
-    # but with errors stored in game.errors.
-    if game.errors:
-        print("Default GameBuilder caught errors:")
-        for error in game.errors:
-            print(" -", error)
-    else:
-        print("Default GameBuilder did not catch any errors (unexpected).")
+# parse with default handle_error method, logs errors to a list instead of raising them
+def parse_lenient():
+    game = chess.pgn.read_game(io.StringIO(malformed_pgn))
+    print("Lenient caught:", game.errors)
+    
 
-def parse_with_strict():
-    """
-    Parse the malformed PGN using StrictGameBuilder,
-    which is a subclass of GameBuilder that raises errors immediately.
-    """
-    # Import the strict builder from the library.
-    # (Assumes that StrictGameBuilder was added to chess.pgn.)
+def parse_strict_via_flag():
+    chess.pgn.read_game(io.StringIO(malformed_pgn), strict_errors=True)
+   
+def parse_strict_via_class():
+    chess.pgn.read_game(io.StringIO(malformed_pgn), Visitor=StrictGameBuilder)
+   
 
-    pgn_file = io.StringIO(malformed_pgn)
-    # This call should raise an exception because of the malformed move.
-    chess.pgn.read_game(pgn_file, Visitor=StrictGameBuilder)
-    # If no exception is raised, print an error (this is not expected).
-    print("StrictGameBuilder did not raise an error as expected.")
+if __name__ == "__main__":
+    print("=== Lenient ===")
+    parse_lenient()
 
-def main():
-    print("Parsing with default (lenient) GameBuilder:")
+    print("\n=== Strict via flag ===")
     try:
-        parse_with_default()
-    except Exception as ex:
-        print("Default GameBuilder raised an exception unexpectedly:", ex)
+        parse_strict_via_flag()
+    except Exception as e:
+        print("Strict(flag) correctly raised:", e)
 
-    print("\nParsing with StrictGameBuilder (errors should raise exceptions):")
+    print("\n=== Strict via class ===")
     try:
-        parse_with_strict()
-    except Exception as ex:
-        # This is the expected behavior.
-        print("StrictGameBuilder correctly raised an exception:")
-        print(" -", ex)
-
-
-if __name__ == '__main__':
-    main()
+        parse_strict_via_class()
+    except Exception as e:
+        print("Strict(class) correctly raised:", e)

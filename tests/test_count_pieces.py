@@ -75,6 +75,21 @@ class TestCountPieces(unittest.TestCase):
         count = board.count_pieces(piece_type = PAWN, color = BLACK)
         self.assertEqual(count, 0, "there are 0 black pawns within this board squence.")
 
+
+    def test_invalid_piece_type_raises(self):
+        """Providing an invalid piece_type should raise ValueError."""
+        board = chess.Board()
+        with self.assertRaises(ValueError):
+            board.count_pieces(piece_type=0)  # valid types are 1–6
+
+    def test_invalid_color_raises(self):
+        """Passing a color other than WHITE (0) or BLACK (1) should raise IndexError."""
+        board = chess.Board()
+        with self.assertRaises(IndexError):
+            # occupied_co is a list of length 2, so index 2 is out of range
+            board.count_pieces(color=2)
+    
+
 if __name__ == '__main__':
     unittest.main()
  

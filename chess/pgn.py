@@ -1070,7 +1070,7 @@ class Game(GameNode):
         # Start processing
         process_game_tree()
         return positions
-
+ 
 class SubGame(Game):
     """
     A subclass of Game that represents a segment of a larger PGN game.
@@ -1483,7 +1483,7 @@ class StrictGameBuilder(GameBuilder):
     parsing error to be raised as an exception.
     """
     @override
-    def handle_error(self, error: Exception) -> None:
+    def handle_error(self, error: Exception) -> None: 
         # Instead of logging and appending, immediately raise the error.
         raise error
 
@@ -1733,11 +1733,30 @@ class FileExporter(StringExporterMixin, BaseVisitor[int]):
         return self.__repr__()
 
 
-@typing.overload
-def read_game(handle: TextIO) -> Optional[Game]: ...
-@typing.overload
-def read_game(handle: TextIO, *, Visitor: Callable[[], BaseVisitor[ResultT]]) -> Optional[ResultT]: ...
-def read_game(handle: TextIO, *, Visitor: Any = GameBuilder) -> Any:
+    @typing.overload
+    def read_game(handle: TextIO) -> Optional[Game]: ...
+    @typing.overload
+    def read_game(
+    handle: TextIO,
+    *,
+    Visitor: Callable[..., BaseVisitor[ResultT]],
+    strict_errors: bool = ...,
+    ) -> Optional[ResultT]: ...
+
+def read_game(
+    handle: TextIO,
+    *,
+    Visitor: Any = GameBuilder,
+    strict_errors: bool = False,
+) -> Any:
+    # allow a built‑in toggle
+    if strict_errors:
+        from chess.pgn import StrictGameBuilder
+        Visitor = StrictGameBuilder
+    visitor = Visitor()  
+
+
+
     """
     Reads a game from a file opened in text mode.
 
@@ -1788,7 +1807,7 @@ def read_game(handle: TextIO, *, Visitor: Any = GameBuilder) -> Any:
 
     Returns the parsed game or ``None`` if the end of file is reached.
     """
-    visitor = Visitor()
+   
 
     found_game = False
     skipping_game = False
