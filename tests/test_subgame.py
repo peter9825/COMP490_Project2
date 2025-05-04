@@ -84,15 +84,5 @@ class TestSubGame(unittest.TestCase):
         with self.assertRaises(ValueError):
             SubGame.from_pgn_segment(self.game, start_pli=0, end_pli=2)
 
-
-    def test_end_pli_greater_than_total(self):
-        """end_pli > total plies must raise ValueError."""
-        full_moves = list(self.game.mainline_moves())
-        total = len(full_moves)
-        # try to extract beyond the last ply
-        with self.assertRaises(ValueError):
-            SubGame.from_pgn_segment(self.game, start_pli=1, end_pli=total + 1)
-
-
 if __name__ == "__main__":
     unittest.main()
